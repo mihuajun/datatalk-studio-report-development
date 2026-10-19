@@ -25,7 +25,7 @@ description: 数问·工作台报表开发。通过已连接的 DataTalk Studio 
 
 ## 开始前
 
-调用 `get_studio_context`，确认当前租户、账号、权限、目录、文件约定和 `reportEditingEnabled`。MCP 工具集包括 `get_studio_context`、`list_data_sources`、`inspect_data_source_schema`、`preview_query`、`list_reports`、`read_report`、`create_report`、`rename_report`、`copy_report`、`apply_report_changes`、`publish_report`、`get_report_public_link`、`configure_report_public_link` 和 `inspect_report`；以本次连接器实际发现的工具为准，缺少某工具时不要假装可调用，也不要用 HTTP、浏览器或内部凭证绕过。不要求用户提供数据库账号或模型服务密钥。工具参数中不能传入 tenantId/userId；身份由所选连接的 OAuth 授权或 API Key 决定。Key 由用户在独立的“API 管理”菜单创建，只填写名称；不设置权限或有效期，直到用户删除为止。服务端仍检查用户当前身份和租户访问边界。
+调用 `get_studio_context`，确认当前租户、账号、权限、目录、文件约定和 `reportEditingEnabled`。MCP 工具集包括 `get_studio_context`、`list_data_sources`、`inspect_data_source_schema`、`preview_query`、`list_reports`、`read_report`、`create_report`、`rename_report`、`copy_report`、`apply_report_changes`、`publish_report`、`list_resource_categories`、`publish_to_resource_center`、`get_report_public_link`、`configure_report_public_link` 和 `inspect_report`；以本次连接器实际发现的工具为准，缺少某工具时不要假装可调用，也不要用 HTTP、浏览器或内部凭证绕过。不要求用户提供数据库账号或模型服务密钥。工具参数中不能传入 tenantId/userId；身份由所选连接的 OAuth 授权或 API Key 决定。Key 由用户在独立的“API 管理”菜单创建，只填写名称；不设置权限或有效期，直到用户删除为止。服务端仍检查用户当前身份和租户访问边界。
 
 连接信息、API Key、数据库凭据均不得写入报表文件、对话输出或 Skill。数据库访问只通过 Studio 工具和报表运行时，不自行连接数据库。读取的数据将用于 WorkBuddy 模型分析；本地保存 Key 不表示数据处理全部留在本机。
 
@@ -59,6 +59,7 @@ description: 数问·工作台报表开发。通过已连接的 DataTalk Studio 
 - 先用 `get_report_public_link(reportCode)` 查看当前公共链接状态；该调用只读，不创建链接，也不返回链接密码。
 - Studio 发布版本使用 `publish_report(reportCode, operationId, confirm=true)`。只有用户明确确认发布这份具体报表后才能调用；发布不会自动开启公共分享或资源中心收录。
 - 公共链接使用 `configure_report_public_link(reportCode, operationId, enabled, confirm=true, ...)` 单独管理。开启/停用、密码保护、有效期或轮换链接会改变分享范围；先向用户明确说明报表、链接可访问范围及设置，并取得明确确认。开启链接时，报表必须已有 Studio 发布版本。
+- 资源中心上架：先查看 `get_studio_context.reportContract.resourceCenterPublishingAvailable`。只有为 true 时才调用 `list_resource_categories`，并从返回结果选择实际启用的报表分类；不要猜 categoryId。调用 `publish_to_resource_center` 前，向用户明确报表、标题、摘要、分类和“公开上架到资源中心”的可见范围，并取得对本次动作的明确确认。它可能先为有未发布工作区或尚无发布版本的报表创建 Studio 版本，再把资源条目发布到资源中心；不会启用公共链接。若资源中心未启用，不得通过 HTTP、页面或数据库绕过。
 - 密码规则：默认不设置密码（`passwordEnabled` 未指定或为 false）；用户明确要求开启密码保护但未指定密码时，省略 `password`，Studio 自动生成 4 位随机数字密码；用户指定自定义密码时传入该密码，长度为 4–20 个字符。自定义密码只在启用密码保护时传入。
 - MCP 不回显密码。不得声称已向用户展示自动生成的密码；告知用户在 Studio 报表编辑/公共链接设置界面查看或管理密码。`get_report_public_link` 可核验启用、密码保护与有效期状态，但不返回密码。
 - 分享链接设置成功不等于完成公开发布；发布、启用公共链接、资源中心发布是不同状态。不要将临时预览链接当作公共链接。
